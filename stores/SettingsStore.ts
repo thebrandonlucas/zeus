@@ -40,6 +40,7 @@ interface Settings {
     scramblePin?: boolean;
     authenticationAttempts?: number;
     fiat?: string;
+    fiatRateUrl?: string;
     locale?: string;
     privacy: PrivacySettings;
 }
@@ -118,6 +119,9 @@ export const CURRENCY_KEYS = [
     { key: '🇦🇷 Argentine Peso (ARS)', value: 'ARS' },
     { key: '🇮🇱 Israeli New Shekel (ILS)', value: 'ILS' }
 ];
+
+export const DEFAULT_FIAT_RATE_URL =
+    'https://pay.zeusln.app/api/rates?storeId=Fjt7gLnGpg4UeBMFccLquy3GTTEz4cHU4PZMU63zqMBo';
 
 export const THEME_KEYS = [
     { key: 'Dark', value: 'dark' },

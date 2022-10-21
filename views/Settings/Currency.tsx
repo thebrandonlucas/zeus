@@ -1,13 +1,14 @@
 import * as React from 'react';
-import { FlatList, View } from 'react-native';
+import { FlatList, Switch, View, Text } from 'react-native';
 import { Header, Icon, ListItem, SearchBar } from 'react-native-elements';
 import { inject, observer } from 'mobx-react';
 
 import UnitsStore from './../../stores/UnitsStore';
-import SettingsStore, { CURRENCY_KEYS } from './../../stores/SettingsStore';
+import SettingsStore, { CURRENCY_KEYS, DEFAULT_FIAT_RATE_URL } from './../../stores/SettingsStore';
 
 import { localeString } from './../../utils/LocaleUtils';
 import { themeColor } from './../../utils/ThemeUtils';
+import TextInput from '../../components/TextInput';
 
 interface CurrencyProps {
     navigation: any;
@@ -30,16 +31,20 @@ export default class Currency extends React.Component<
     state = {
         selectedCurrency: '',
         search: '',
-        currencies: CURRENCY_KEYS
+        currencies: CURRENCY_KEYS,
+        fiatRateUrl: '',
+        useDefaultFiatRateUrl: true
     };
 
     async UNSAFE_componentWillMount() {
         const { SettingsStore } = this.props;
         const { getSettings } = SettingsStore;
         const settings = await getSettings();
-
         this.setState({
-            selectedCurrency: settings.fiat
+            selectedCurrency: settings.fiat,
+            fiatRateUrl: settings.fiatRateUrl,
+            useDefaultFiatRateUrl:
+                settings.fiatRateUrl === DEFAULT_FIAT_RATE_URL
         });
     }
 
@@ -117,6 +122,50 @@ export default class Currency extends React.Component<
                             backgroundColor: themeColor('secondary')
                         }}
                     />
+                    <Text
+                        style={{
+                            color: themeColor('secondaryText'),
+                            fontFamily: 'Lato-Regular'
+                        }}
+                    >
+                        Use Default Fiat Rate URL
+                        {/* {localeString(
+                            'views.Settings.Privacy.customBlockExplorer'
+                        )} */}
+                    </Text>
+                    <Switch
+                        value={this.state.useDefaultFiatRateUrl}
+                        onValueChange={async () => {
+                            this.setState({
+                                useDefaultFiatRateUrl:
+                                    !this.state.useDefaultFiatRateUrl
+                            });
+                        }}
+                        trackColor={{
+                            false: '#767577',
+                            true: themeColor('highlight')
+                        }}
+                    />
+                    {!this.state.useDefaultFiatRateUrl && (
+                        <TextInput
+                            value={this.state.fiatRateUrl}
+                            placeholder="Custom url, i.e. https://btcpay..."
+                            onChangeText={async (text: string) => {
+                                this.setState({
+                                    fiatRateUrl: text
+                                });
+                                const settings = await getSettings();
+                                await setSettings(
+                                    JSON.stringify(
+                                        settings && {
+                                            ...settings,
+                                            fiatRateUrl: text
+                                        }
+                                    )
+                                );
+                            }}
+                        />
+                    )}
                     <FlatList
                         data={currencies}
                         renderItem={({ item }) => (
@@ -136,6 +185,8 @@ export default class Currency extends React.Component<
                                                       selectedNode:
                                                           settings.selectedNode,
                                                       fiat: item.value,
+                                                      fiatRateUrl:
+                                                          settings.fiatRateUrl,
                                                       passphrase:
                                                           settings.passphrase,
                                                       duressPassphrase:

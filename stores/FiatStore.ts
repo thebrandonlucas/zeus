@@ -1,6 +1,6 @@
 import { action, observable } from 'mobx';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import SettingsStore from './SettingsStore';
+import SettingsStore, { DEFAULT_FIAT_RATE_URL } from './SettingsStore';
 
 interface CurrencyDisplayRules {
     symbol: string;
@@ -188,10 +188,9 @@ export default class FiatStore {
     @action
     public getFiatRates = () => {
         this.loading = true;
-        ReactNativeBlobUtil.fetch(
-            'GET',
-            'https://pay.zeusln.app/api/rates?storeId=Fjt7gLnGpg4UeBMFccLquy3GTTEz4cHU4PZMU63zqMBo'
-        )
+        const { settings } = this.settingsStore;
+        const { fiatRateUrl } = settings;
+        ReactNativeBlobUtil.fetch('GET', fiatRateUrl || DEFAULT_FIAT_RATE_URL)
             .then((response: any) => {
                 const status = response.info().status;
                 if (status == 200) {
